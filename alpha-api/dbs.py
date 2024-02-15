@@ -16,4 +16,3 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-
