@@ -3,7 +3,7 @@ import sentry_sdk
 from flask import flash, jsonify, request
 from sentry_sdk import capture_exception
 from flask_sqlalchemy import SQLAlchemy
-from dbs import Product, app, db
+from dbs import Product, app, db,Sales
 from flask_cors import CORS
 
 
@@ -78,6 +78,43 @@ def get_product(product_id):
         print(e)
         # capture_exception(e)
         return jsonify({"error": "Internal Server Error"}), 500
+
+@app.route('/sales',methods=['GET','POST'])
+def sales():
+    if request.method == 'GET':
+        try:
+            sales=Sales.query.all()
+            s_dict=[]
+            for sale in sales:
+                s_dict.append({"id": sale.id, "pid": sale.pid, "quantity": sale.quantity,"created_at": sale.created_at})
+            return jsonify(s_dict)
+        except Exception as e:
+            print(e)
+            # capture_exception(e)
+            return jsonify({})
+        
+    elif request.method == 'POST':
+        if request.is_json:
+            try:
+                data = request.json
+                new_sale = Sales(pid=data.get(
+                    'pid'), quantity=data.get('quantity'))
+                db.session.add(new_sale)
+                db.session.commit()
+                s = "sales added successfully." + str(new_sale.id)
+                sel = {"result": s}
+                return jsonify(sel), 201
+            except Exception as e:
+                print(e)
+                # capture_exception(e)
+                return jsonify({"error": "Internal Server Error"}), 500
+        else:
+            return jsonify({"error": "Data is not JSON."}), 400
+    else:
+        return jsonify({"error": "Method not allowed."}), 400
+
+
+
 
 
 if __name__ == "__main__":
