@@ -121,12 +121,12 @@ def sales():
 
 @app.route('/dashboard', methods=["GET"])
 def dashboard():
-    apikey = "2Z5BUFU7HVV3C5ZS"
-    url = 'https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=JPY&apikey=' + apikey
-    response = requests.get(url)
-    data = response.json()
-    exchange_rate = float(
-        data['Realtime Currency Exchange Rate']['5. Exchange Rate'])
+    # apikey = "2Z5BUFU7HVV3C5ZS"
+    # url = 'https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=USD&to_currency=JPY&apikey=' + apikey
+    # response = requests.get(url)
+    # data = response.json()
+    # exchange_rate = float(
+    #     data['Realtime Currency Exchange Rate']['5. Exchange Rate'])
 
     today = date.today()
     start_of_day = datetime.combine(today, datetime.min.time())
@@ -135,8 +135,8 @@ def dashboard():
     # Query to get sales per day
     sales_per_day = db.session.query(
         func.date(Sales.created_at).label('date'),# extracts date from created at
-        func.count('*').label('total_sales')# calculate the total number of sales per day
-    ).filter(
+        func.sum(Sales.quantity *Product.price).label('total_sales')# calculate the total number of sales per day
+    ).join(Product).filter(
         Sales.created_at >= start_of_day,
         Sales.created_at <= end_of_day
     ).group_by(
@@ -148,17 +148,17 @@ def dashboard():
                   for day, sales in sales_per_day]
     #  sales per product
     sales_per_product = db.session.query(
-        Sales.pid,
-        func.sum(Sales.quantity).label('total_sales')
-    ).group_by(
-        Sales.pid
+        Product.name,
+        func.sum(Sales.quantity*Product.price).label('sales_product')
+    ).join(Sales).group_by(
+        Product.name
     ).all()
 
     # to JSON format
-    salesproduct_data = [{'product_id': pid, 'total_sales': total_sales}
-                              for pid, total_sales in sales_per_product]
+    salesproduct_data = [{'name': name, 'sales_product': sales_product}
+                         for name, sales_product in sales_per_product]
 
-    return jsonify({'exchange_rate': exchange_rate, 'sales_data': sales_data, 'salesproduct_data': salesproduct_data})
+    return jsonify({'sales_data': sales_data, 'salesproduct_data': salesproduct_data})
 
 
 
