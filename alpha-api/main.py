@@ -128,18 +128,11 @@ def dashboard():
     # exchange_rate = float(
     #     data['Realtime Currency Exchange Rate']['5. Exchange Rate'])
 
-    today = date.today()
-    start_of_day = datetime.combine(today, datetime.min.time())
-    end_of_day = datetime.combine(today, datetime.max.time())
-
     # Query to get sales per day
     sales_per_day = db.session.query(
         func.date(Sales.created_at).label('date'),# extracts date from created at
         func.sum(Sales.quantity *Product.price).label('total_sales')# calculate the total number of sales per day
-    ).join(Product).filter(
-        Sales.created_at >= start_of_day,
-        Sales.created_at <= end_of_day
-    ).group_by(
+    ).join(Product).group_by(
         func.date(Sales.created_at)
     ).all()
 
