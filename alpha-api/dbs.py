@@ -16,9 +16,9 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    sales=db.relationship("Sales",backref='product')
+    sales=db.relationship("Sale",backref='product')
 
-class Sales(db.Model):
+class Sale(db.Model):
     __tablename__='sales'
     id=db.Column(db.Integer,primary_key=True)
     pid=db.Column(db.Integer,db.ForeignKey('products.id'),nullable=False)

@@ -3,11 +3,10 @@ import sentry_sdk
 from flask import flash, jsonify, request
 from sentry_sdk import capture_exception
 from flask_sqlalchemy import SQLAlchemy
-from dbs import Product, app, db, Sales
+from dbs import Product, app, db, Sale
 from flask_cors import CORS
 import requests
 from sqlalchemy import func
-from datetime import datetime, date
 
 sentry_sdk.init(
     dsn="https://ae1085d73eeb378b00f5f8aacb4811e7@o4506695501611008.ingest.sentry.io/4506695661584384",
@@ -87,7 +86,7 @@ def get_product(product_id):
 def sales():
     if request.method == 'GET':
         try:
-            sales = Sales.query.all()
+            sales = Sale.query.all()
             s_dict = []
             for sale in sales:
                 s_dict.append({"id": sale.id, "pid": sale.pid,
@@ -102,7 +101,7 @@ def sales():
         if request.is_json:
             try:
                 data = request.json
-                new_sale = Sales(pid=data.get(
+                new_sale = Sale(pid=data.get(
                     'pid'), quantity=data.get('quantity'))
                 db.session.add(new_sale)
                 db.session.commit()
@@ -130,10 +129,12 @@ def dashboard():
 
     # Query to get sales per day
     sales_per_day = db.session.query(
-        func.date(Sales.created_at).label('date'),# extracts date from created at
-        func.sum(Sales.quantity *Product.price).label('total_sales')# calculate the total number of sales per day
+        # extracts date from created at
+        func.date(Sale.created_at).label('date'),
+        # calculate the total number of sales per day
+        func.sum(Sale.quantity * Product.price).label('total_sales')
     ).join(Product).group_by(
-        func.date(Sales.created_at)
+        func.date(Sale.created_at)
     ).all()
 
     #  to JSON format
@@ -142,8 +143,8 @@ def dashboard():
     #  sales per product
     sales_per_product = db.session.query(
         Product.name,
-        func.sum(Sales.quantity*Product.price).label('sales_product')
-    ).join(Sales).group_by(
+        func.sum(Sale.quantity*Product.price).label('sales_product')
+    ).join(Sale).group_by(
         Product.name
     ).all()
 
@@ -152,7 +153,6 @@ def dashboard():
                          for name, sales_product in sales_per_product]
 
     return jsonify({'sales_data': sales_data, 'salesproduct_data': salesproduct_data})
-
 
 
 if __name__ == "__main__":
