@@ -9,20 +9,37 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Kevin254!@localho
 app.config['SQLALCHEMY_TRACK_CONFIGURATION'] = False
 db = SQLAlchemy(app)
 
+
 class Product(db.Model):
-    __tablename__='products'
+    __tablename__ = 'products'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    cost = db.Column(db.Float, nullable=False)
 
-    sales=db.relationship("Sale",backref='product')
+    price = db.Column(db.Float, nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow, nullable=False)
+
+    sales = db.relationship("Sale", backref='product')
+
 
 class Sale(db.Model):
-    __tablename__='sales'
-    id=db.Column(db.Integer,primary_key=True)
-    pid=db.Column(db.Integer,db.ForeignKey('products.id'),nullable=False)
-    quantity=db.Column(db.Integer,nullable=False)
-    created_at=db.Column(db.DateTime,default=datetime.utcnow ,nullable=False)
+    __tablename__ = 'sales'
+    id = db.Column(db.Integer, primary_key=True)
+    pid = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow, nullable=False)
 
     # product=db.relationship("Product",backref='sales')
+
+
+class User(db.Model):
+    __tablename__ = 'users'
+
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String, unique=True, nullable=False)
+    password = db.Column(db.String, nullable=False)
+
+    def __repr__(self):
+        return f"<User(name='{self.name}', email='{self.email}', password='{self.password}')>"
