@@ -10,16 +10,17 @@ app.config['SQLALCHEMY_TRACK_CONFIGURATION'] = False
 db = SQLAlchemy(app)
 
 
+
 class Product(db.Model):
     __tablename__ = 'products'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     cost = db.Column(db.Float, nullable=False)
-
     price = db.Column(db.Float, nullable=False)
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow, nullable=False)
-
+    username=db.Column(db.String,db.ForeignKey('users.username'),nullable=False)
+    user=db.relationship("User", backref="products")
     sales = db.relationship("Sale", backref='product')
 
 

@@ -43,15 +43,18 @@ def token_required(f):
 
 
 @app.route("/products", methods=["POST", "GET"])
-# @token_required
-def prods():
+@token_required
+def prods(current_user):
+
+    print("--------------",current_user)
+
     if request.method == "GET":
         try:
             prods = Product.query.all()
             p_dict = []
             for prod in prods:
                 p_dict.append(
-                    {"id": prod.id, "name": prod.name,"cost": prod.cost, "price": prod.price})
+                    {"id": prod.id, "name": prod.name,"cost": prod.cost, "price": prod.price,'username':prod.username})
             return jsonify(p_dict)
         except Exception as e:
             print(e)
@@ -62,8 +65,9 @@ def prods():
         if request.is_json:
             try:
                 data = request.json
+
                 new_product = Product(
-                    name=data['name'], cost=data['cost'], price=data['price'])
+                    name=data['name'], cost=data['cost'], price=data['price'],user_id=)
                 db.session.add(new_product)
                 db.session.commit()
                 r = "Product added successfully. ID: " + str(new_product.id)
@@ -138,6 +142,7 @@ def sales():
 
 
 @app.route('/dashboard', methods=["GET"])
+# @token_required
 def dashboard():
     # Query to get sales per day
     sales_per_day = db.session.query(
