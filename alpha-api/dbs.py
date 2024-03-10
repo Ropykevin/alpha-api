@@ -19,7 +19,7 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=False)
     created_at = db.Column(
         db.DateTime, default=datetime.utcnow, nullable=False)
-    username=db.Column(db.String,db.ForeignKey('users.username'),nullable=False)
+    user_id=db.Column(db.Integer,db.ForeignKey('users.id'),nullable=False)
     user=db.relationship("User", backref="products")
     sales = db.relationship("Sale", backref='product')
 

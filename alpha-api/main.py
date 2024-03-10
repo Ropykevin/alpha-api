@@ -6,6 +6,7 @@ from sentry_sdk import capture_exception
 from dbs import Product, app, db, Sale, User
 from flask_cors import CORS
 import jwt
+from flask_jwt_extended import unset_jwt_cookies, jwt_required
 from sqlalchemy import func,desc
 from functools import wraps
 import datetime
@@ -54,7 +55,7 @@ def prods(current_user):
             p_dict = []
             for prod in prods:
                 p_dict.append(
-                    {"id": prod.id, "name": prod.name,"cost": prod.cost, "price": prod.price,'username':prod.username})
+                    {"id": prod.id, "name": prod.name,"cost": prod.cost, "price": prod.price,'user_id':prod.user_id})
             return jsonify(p_dict)
         except Exception as e:
             print(e)
@@ -65,9 +66,13 @@ def prods(current_user):
         if request.is_json:
             try:
                 data = request.json
+                username=current_user
+                user=User.query.filter_by(username=username).first()
+                if user:
+                    user_id = user.id
 
                 new_product = Product(
-                    name=data['name'], cost=data['cost'], price=data['price'],user_id=)
+                    name=data['name'], cost=data['cost'], price=data['price'], user_id=user_id)
                 db.session.add(new_product)
                 db.session.commit()
                 r = "Product added successfully. ID: " + str(new_product.id)
@@ -260,11 +265,18 @@ def login():
     if user:
 
         token = jwt.encode({'username': username, 'exp': datetime.datetime.utcnow()
-                            + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+                            + datetime.timedelta(minutes=10)}, app.config['SECRET_KEY'])
         return jsonify({'access_token': token}), 200
     else:
         return jsonify({'error': 'User does not exist'}), 404
 
+
+@app.route('/logout',methods=['POST'])
+@token_required
+def logout():
+    response=jsonify({'message':'Successfully logged out'})
+    unset_jwt_cookies(response)
+    return response
 
 if __name__ == "__main__":
     with app.app_context():
